@@ -40,8 +40,16 @@ android {
 }
 
 dependencies {
+
+    // Retrofit core
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Конвертер для JSON (Gson)
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("androidx.activity:activity-ktx:1.8.2")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

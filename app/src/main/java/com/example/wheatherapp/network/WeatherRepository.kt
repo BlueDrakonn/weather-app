@@ -1,14 +1,23 @@
 package com.example.wheatherapp.network
 
 import android.util.Log
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
+
+import com.example.wheatherapp.data.CurrentWeatherResponse
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Query
 import java.io.IOException
+
+interface WeatherApiService {
+    @GET("current.json")
+    suspend fun getCurrentWeather(
+        @Query("key") apiKey: String,
+        @Query("q") location: String,
+        @Query("aqi") aqi: String = "no"
+    ): CurrentWeatherResponse
+}
+
 
 
 class WeatherApiRepository() {
@@ -16,26 +25,26 @@ class WeatherApiRepository() {
     private val API_KEY = "4fdea4d317c64940b3f130345252502"
 
 
+    private val retrofit by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.weatherapi.com/v1/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
 
-    private val client: OkHttpClient by lazy {
-        OkHttpClient()
+    private val apiService: WeatherApiService by lazy {
+        retrofit.create(WeatherApiService::class.java)
     }
 
 
-    suspend fun currentWeather(latitude: Double, longitude: Double): String = withContext(
-        Dispatchers.IO) {
-        val request = Request.Builder()
-            .url("https://api.weatherapi.com/v1/current.json?key=$API_KEY&q=$latitude,$longitude&aqi=no")
-            .build()
-
-        try {
-            val response = client.newCall(request).execute()
-            if (!response.isSuccessful) {
-                return@withContext "неудачный запрос"
-            }
-            return@withContext response.body?.string().toString()
-        } catch (e: IOException) {
-            return@withContext "ошибка: ${e.message}"
+    suspend fun currentWeather(latitude: Double, longitude: Double): Result<CurrentWeatherResponse> {
+        return try {
+            val response = apiService.getCurrentWeather(API_KEY, "$latitude,$longitude")
+            Log.d("WATHER_SUCCESS","$response")
+            Result.success(response)
+        } catch (e: Exception) {
+            Log.d("WEATHER_ERROR", "$e ")
+            Result.failure(e)
         }
     }
 
