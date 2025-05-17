@@ -7,7 +7,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Query
-import java.io.IOException
+
+
+
+sealed class ResponseState {
+    data object Loading : ResponseState()
+    data class Success(val data: CurrentWeatherResponse) : ResponseState()
+    data class Error(val exception: Exception) : ResponseState()
+}
 
 interface WeatherApiService {
     @GET("current.json")
@@ -37,14 +44,16 @@ class WeatherApiRepository() {
     }
 
 
-    suspend fun currentWeather(latitude: Double, longitude: Double): Result<CurrentWeatherResponse> {
+    suspend fun getCurrentWeather(latitude: Double, longitude: Double): ResponseState {
         return try {
             val response = apiService.getCurrentWeather(API_KEY, "$latitude,$longitude")
             Log.d("WATHER_SUCCESS","$response")
-            Result.success(response)
+            ResponseState.Success(response)
+            //Result.success(response)
         } catch (e: Exception) {
             Log.d("WEATHER_ERROR", "$e ")
-            Result.failure(e)
+            //Result.failure(e)
+            ResponseState.Error(e)
         }
     }
 

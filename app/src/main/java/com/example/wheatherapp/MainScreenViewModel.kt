@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.example.wheatherapp.data.CurrentWeatherResponse
+import com.example.wheatherapp.network.ResponseState
 import com.example.wheatherapp.network.WeatherApiRepository
 import com.example.wheatherapp.network.WeatherApiService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,22 +18,23 @@ class MainScreenViewModel() : ViewModel() {
 
     private  val repository = WeatherApiRepository()
 
-    private val _weatherState = MutableStateFlow<CurrentWeatherResponse?>(null)
-    val weatherState: StateFlow<CurrentWeatherResponse?> = _weatherState.asStateFlow()
+    private val _weatherState = MutableStateFlow<ResponseState?>(ResponseState.Loading)
+
+    val weatherState: StateFlow<ResponseState?> = _weatherState.asStateFlow()
 
 
 
-    fun fetchWeather(latitude: Double, longitude: Double) {
-        viewModelScope.launch {
-            val result = repository.currentWeather(latitude, longitude)
-
-            if (result.isSuccess) {
-                _weatherState.value = result.getOrNull()
-            } else {
-                _weatherState.value = null
-
-            }
-
+    suspend fun fetchWeather(latitude: Double, longitude: Double) {
+        _weatherState.value = ResponseState.Loading
+        try {
+            val result = repository.getCurrentWeather(40.0,40.0)
+            _weatherState.value = result
+        } catch (e: Exception) {
+            _weatherState.value = ResponseState.Error(e)
         }
     }
+
+
+
+
 }
