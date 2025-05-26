@@ -18,16 +18,16 @@ class MainScreenViewModel() : ViewModel() {
 
     private  val repository = WeatherApiRepository()
 
-    private val _weatherState = MutableStateFlow<ResponseState?>(ResponseState.Loading)
+    private val _weatherState = MutableStateFlow<ResponseState>(ResponseState.Loading)
 
-    val weatherState: StateFlow<ResponseState?> = _weatherState.asStateFlow()
+    val weatherState: StateFlow<ResponseState> = _weatherState.asStateFlow()
 
 
 
     suspend fun fetchWeather(latitude: Double, longitude: Double) {
         _weatherState.value = ResponseState.Loading
         try {
-            val result = repository.getCurrentWeather(40.0,40.0)
+            val result = repository.getCurrentWeather(latitude,longitude)
             _weatherState.value = result
         } catch (e: Exception) {
             _weatherState.value = ResponseState.Error(e)
